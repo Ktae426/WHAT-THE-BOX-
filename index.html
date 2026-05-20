@@ -1,197 +1,124 @@
-import { gameState, loadUserData } from './app.js';
-import { initActiveMatchEntities, playersEntities, pileBoxMat, handleGameEndSequence, renderTimerText, handleRemoteItemTrigger } from './game-engine.js';
-import * as THREE from 'https://unpkg.com/three@0.128.0/build/three.module.js';
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>WHAT THE BOX! - Fixed Edition</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-const SUPABASE_URL = "https://djcxkcuylpfvpsclxlma.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqY3hrY3V5bHBmdnBzY2x4bG1hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMTM0MzgsImV4cCI6MjA5NDY4OTQzOH0.PVhhYl5kKP38DIPqk3LUI3dtcXLqmvykJPgkga5GrKw";
+    <div id="bg-blur"></div>
 
-export let supabaseClient = null;
+    <div id="auth-screen">
+        <div id="auth-frame">
+            <h2 id="auth-title">WHAT THE BOX!</h2>
+            <input type="email" id="auth-email" class="auth-input" placeholder="이메일 주소">
+            <input type="text" id="auth-nickname" class="auth-input" placeholder="게임 닉네임" style="display: none;">
+            <input type="password" id="auth-password" class="auth-input" placeholder="비밀번호 (6자리 이상)">
+            <div class="auth-btn-group">
+                <button id="btn-signin-submit" class="auth-btn" onclick="window.handleSignIn()">로그인</button>
+                <button id="btn-signup-submit" class="auth-btn" onclick="window.handleSignUp()" style="display: none;">회원가입 완료</button>
+            </div>
+            <div id="auth-error-msg"></div>
+            <div class="auth-toggle-text" id="auth-toggle-container">
+                계정이 없으신가요?<span class="auth-toggle-link" onclick="window.toggleAuthMode(true)">회원가입하기</span>
+            </div>
+        </div>
+    </div>
 
-// 스크립트 로드 타이밍 이슈 우회를 위한 안전 초기화 헬퍼 함수
-function getSupabase() {
-    if (!supabaseClient) {
-        if (typeof supabase === 'undefined') {
-            throw new Error("Supabase SDK가 아직 로드되지 않았습니다. 잠시 후 다시 시도하세요.");
-        }
-        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        window.supabaseClient = supabaseClient;
-    }
-    return supabaseClient;
-}
+    <div id="start-screen">
+        <div id="start-frame">
+            <div id="box1" class="decor-item decor-box">📦</div>
+            <div id="box2" class="decor-item decor-box">📦</div>
+            <div id="banana1" class="decor-item decor-banana">🍌</div>
+            <div id="banana2" class="decor-item decor-banana">🍌</div>
 
-// 회원 가입 API 로직
-export async function handleAuthSignUp() {
-    const email = document.getElementById('auth-email').value;
-    const password = document.getElementById('auth-password').value;
-    const nickname = document.getElementById('auth-nickname').value;
-    const errorMsg = document.getElementById('auth-error-msg');
+            <div id="title-container">
+                <span class="main-title title-what-the">WHAT THE</span>
+                <span class="main-title title-box">BOX!</span>
+            </div>
+
+            <div class="menu-btn-group" id="lobby-main-menu">
+                <button id="start-btn" onclick="window.showLobbyOptions()">
+                    <span class="btn-glove">🥊</span><span>START GAME</span><span class="btn-glove">🥊</span>
+                </button>
+                <button id="shop-open-btn" onclick="window.openSkinShop()">
+                    <span>🛒</span><span>스킨 상점</span>
+                </button>
+            </div>
+
+            <div id="lobby-mode-panel" style="display: none;">
+                <button class="lobby-panel-btn" id="btn-create-panel" onclick="window.createRoom()">방 만들기</button>
+                <button class="lobby-panel-btn" id="btn-join-panel" onclick="window.openJoinCodePopup()">방 참가하기</button>
+            </div>
+
+            <div id="join-code-popup">
+                <h3>방 코드 입력</h3>
+                <div class="code-input-wrapper">
+                    <input type="text" id="input-room-code" maxlength="4" autocomplete="off">
+                    <div id="input-code-mirror">____</div>
+                </div>
+                <div class="popup-btn-group">
+                    <button class="popup-btn" id="btn-code-confirm" onclick="window.submitJoinRoomCode()">입장</button>
+                    <button class="popup-btn" id="btn-code-cancel" onclick="window.closeJoinCodePopup()">취소</button>
+                </div>
+            </div>
+
+            <div id="lobby-room-view">
+                <div id="room-code-display">방 코드: <span id="txt-room-code">----</span></div>
+                <p id="txt-player-count-header" style="font-weight: bold; color: #475569;">대기 중인 플레이어 (0/4)</p>
+                <div class="player-list-container" id="ui-player-list"></div>
+                <div class="lobby-action-group">
+                    <button id="btn-match-start" onclick="window.requestStartGame()">게임 시작</button>
+                    <button id="btn-leave-room" onclick="window.leaveRoom()">방 나가기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="skin-shop-popup">
+        <h2>🛍️ 명품 스킨 상점</h2>
+        <div class="my-credit-info">보유 크레딧: <span id="popup-credit-txt">0</span> Credit</div>
+        <div class="skin-item-list">
+            <div class="skin-card" id="card-safari"><div class="skin-card-title">사파리 캡</div><div class="skin-preview-box">🤠</div><button class="skin-buy-btn buy" id="btn-skin-safari" onclick="window.purchaseSkin('safari')">구매하기</button></div>
+            <div class="skin-card" id="card-chef"><div class="skin-card-title">일류 요리사</div><div class="skin-preview-box">👨‍🍳</div><button class="skin-buy-btn buy" id="btn-skin-chef" onclick="window.purchaseSkin('chef')">구매하기</button></div>
+            <div class="skin-card" id="card-hero"><div class="skin-card-title">히어로 윙스</div><div class="skin-preview-box">👼</div><button class="skin-buy-btn buy" id="btn-skin-hero" onclick="window.purchaseSkin('hero')">구매하기</button></div>
+        </div>
+        <button id="shop-close-btn" onclick="window.closeSkinShop()">나가기</button>
+    </div>
+
+    <div id="game-over-screen">
+        <h2>🏁 게임 종료!</h2>
+        <div id="result-container" class="result-list"></div>
+        <button id="btn-end-exit" onclick="window.exitGameOverToLobby()">나가기</button>
+    </div>
+
+    <div id="thanos-popup">
+        <h3>점수를 뺏을 플레이어 선택</h3>
+        <div class="thanos-player-list" id="thanos-players-container"></div>
+        <button id="btn-thanos-cancel" onclick="window.closeThanosPopup()">취소</button>
+    </div>
+
+    <div id="ranking-board" class="hud">
+        <span class="rank-title">🏆 SCORE</span>
+        <div id="ui-scores-list"></div>
+    </div>
+    <div id="timer-box" class="hud"><span id="time-txt">02:00</span></div>
+    <div id="item-shop" class="hud">
+        <span class="shop-title">🛒 ITEM SHOP (<span id="gold-txt" style="color:#eab308; font-weight:bold;">50</span>G)</span>
+        <button id="btn-banana" class="shop-btn" onclick="window.buyItem('banana', 10)">🍌 바나나 껍질 (10G)</button>
+        <button id="btn-powerup" class="shop-btn" onclick="window.buyItem('powerup', 30)">⚡ 파워업 드링크 (30G)</button>
+        <button id="btn-magnet" class="shop-btn" onclick="window.buyItem('magnet', 50)">🧲 박스 자석 (50G)</button>
+        <button id="btn-ice" class="shop-btn" onclick="window.buyItem('ice', 70)">❄️ 아이스 얼음 (70G)</button>
+        <button id="btn-thanos" class="shop-btn" onclick="window.buyItem('thanos', 100)">😈 타노스 핑거스냅 (100G)</button>
+    </div>
     
-    errorMsg.innerText = ""; errorMsg.style.display = "none";
-    if (!email || !password || !nickname) { errorMsg.innerText = "모든 항목을 입력해 주세요."; errorMsg.style.display = "block"; return; }
-    if (password.length < 6) { errorMsg.innerText = "비밀번호는 6자리 이상이어야 합니다."; errorMsg.style.display = "block"; return; }
+    <div id="inventory-hud" class="hud">
+        <div class="slot-box"><span>🎒 가방 [R]</span><span id="inv-slot" class="active-item">비어있음</span></div>
+        <div class="slot-box"><span>🥊 무기 [E]</span><span class="active-item" style="color:#ef4444;">기본 펀치</span></div>
+    </div>
 
-    try {
-        const client = getSupabase();
-        const { data, error } = await client.auth.signUp({ email, password });
-        if (error) { errorMsg.innerText = "회원가입 실패: " + error.message; errorMsg.style.display = "block"; return; }
-        if (data.user) {
-            await client.from('user_profiles').insert([{ id: data.user.id, nickname: nickname, credits: 0, owned_skins: { basic: true } }]);
-        }
-        errorMsg.innerText = "회원가입 완료! 로그인을 진행해 주세요."; errorMsg.style.color = "#22c55e"; errorMsg.style.display = "block";
-        setTimeout(() => { errorMsg.style.color = "#ef4444"; window.toggleAuthMode(false); }, 1500);
-    } catch(e) {
-        errorMsg.innerText = "오류 발생: " + e.message; errorMsg.style.display = "block";
-    }
-}
-
-// 로그인 세션 체결 엔진
-export async function handleAuthSignIn() {
-    const email = document.getElementById('auth-email').value;
-    const password = document.getElementById('auth-password').value;
-    const errorMsg = document.getElementById('auth-error-msg');
-    
-    errorMsg.innerText = ""; errorMsg.style.display = "none";
-    if (!email || !password) { errorMsg.innerText = "이메일과 비밀번호를 입력해 주세요."; errorMsg.style.display = "block"; return; }
-    
-    try {
-        const client = getSupabase();
-        const { data, error } = await client.auth.signInWithPassword({ email, password });
-        if (error) { errorMsg.innerText = "로그인 실패: 이메일 또는 비밀번호가 일치하지 않습니다."; errorMsg.style.display = "block"; return; }
-        
-        gameState.loggedInUser = data.user;
-        await loadUserData();
-
-        document.getElementById('auth-screen').style.opacity = "0";
-        setTimeout(() => {
-            document.getElementById('auth-screen').style.display = "none";
-            document.getElementById('start-screen').style.display = "flex";
-        }, 400);
-    } catch(e) {
-        errorMsg.innerText = "네트워크 오류: " + e.message; errorMsg.style.display = "block";
-    }
-}
-
-// 매치 메이킹: 방 개설 프로시저
-export async function createGameRoom() {
-    const client = getSupabase();
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
-    const { data, error } = await client.from('game_rooms').insert([
-        { room_code: code, players: [], is_started: false, created_at: new Date() }
-    ]).select().single();
-    if (error) { alert("방 생성 실패"); return; }
-    gameState.currentRoomId = data.id; gameState.currentRoomCode = code; gameState.isHost = true;
-    setupRoomLobbyUI(code, []); subscribeRoomPresence();
-}
-
-// 매치 메이킹: 방 참가 프로시저
-export async function submitJoinRoomCode() {
-    const client = getSupabase();
-    const code = document.getElementById('input-room-code').value.trim();
-    if (code.length !== 4) { alert("4자리 숫자를 입력해주세요."); return; }
-    const { data: room, error } = await client.from('game_rooms').select('*').eq('room_code', code).eq('is_started', false).single();
-    if (error || !room) { alert("존재하지 않거나 이미 시작된 방입니다."); return; }
-    gameState.currentRoomId = room.id; gameState.currentRoomCode = code; gameState.isHost = false;
-    document.getElementById('join-code-popup').style.display = "none";
-    setupRoomLobbyUI(code, []); subscribeRoomPresence();
-}
-
-// 대기실 퇴장 메커니즘
-export async function leaveRoomLobby() {
-    const client = getSupabase();
-    if (gameState.roomChannel) { gameState.roomChannel.unsubscribe(); gameState.roomChannel = null; }
-    if (gameState.isHost && gameState.currentRoomId) { await client.from('game_rooms').delete().eq('id', gameState.currentRoomId); }
-    gameState.currentRoomId = null; gameState.currentRoomCode = null; gameState.isHost = false;
-    document.getElementById('lobby-room-view').style.display = "none";
-    document.getElementById('lobby-mode-panel').style.display = "flex";
-}
-
-// 방 코드 대기실 UI 동기화 모듈
-export function setupRoomLobbyUI(code, syncedPlayers) {
-    document.getElementById('lobby-mode-panel').style.display = "none";
-    document.getElementById('lobby-room-view').style.display = "flex";
-    document.getElementById('txt-room-code').innerText = code;
-    document.getElementById('txt-player-count-header').innerText = `대기 중인 플레이어 (${syncedPlayers.length}/4)`;
-
-    const container = document.getElementById('ui-player-list'); container.innerHTML = "";
-    const teamNames = ["Red", "Blue", "Yellow", "Green"];
-    syncedPlayers.forEach((p, idx) => {
-        container.innerHTML += `<div class="player-slot-ui rank-${idx}"><span>● ${p.nickname}</span><span>[${teamNames[idx]} 팀]</span></div>`;
-    });
-
-    const startBtn = document.getElementById('btn-match-start');
-    if (gameState.isHost) {
-        if (syncedPlayers.length === 4) { startBtn.className = "ready"; startBtn.disabled = false; }
-        else { startBtn.className = ""; startBtn.disabled = true; }
-    } else { startBtn.className = ""; startBtn.disabled = true; }
-}
-
-// 실시간 Presence 및 Broadcast 이벤트 바인딩 드라이버
-export function subscribeRoomPresence() {
-    const client = getSupabase();
-    if (gameState.roomChannel) { client.removeChannel(gameState.roomChannel); }
-    gameState.roomChannel = client.channel(`room_${gameState.currentRoomId}`, { config: { presence: { key: gameState.loggedInUser.id } } });
-
-    gameState.roomChannel
-    .on('presence', { event: 'sync' }, () => {
-        const presenceState = gameState.roomChannel.presenceState(); const syncedPlayers = [];
-        Object.keys(presenceState).forEach((key) => {
-            const userPresence = presenceState[key][0];
-            if (userPresence) syncedPlayers.push({ id: key, nickname: userPresence.nickname, joinedAt: userPresence.joinedAt });
-        });
-        syncedPlayers.sort((a, b) => a.joinedAt - b.joinedAt);
-        gameState.totalRoomPlayers = syncedPlayers;
-        const myIndex = syncedPlayers.findIndex(p => p.id === gameState.loggedInUser.id);
-        if (myIndex !== -1) gameState.mySlotIndex = myIndex;
-        if (!gameState.gameStarted) setupRoomLobbyUI(gameState.currentRoomCode, syncedPlayers);
-    })
-    .on('broadcast', { event: 'game_start' }, (payload) => { initActiveMatchEntities(payload.payload.players); })
-    .on('broadcast', { event: 'player_move' }, (payload) => {
-        if (!gameState.gameStarted) return; const data = payload.payload;
-        const targetPlayer = playersEntities.find(p => p.id === data.id);
-        if (targetPlayer && data.id !== gameState.loggedInUser.id) {
-            targetPlayer.model.root.position.set(data.x, data.y, data.z); targetPlayer.model.root.rotation.y = data.rotY;
-            if (data.isCarrying && !targetPlayer.isCarrying) {
-                targetPlayer.isCarrying = true; targetPlayer.boxMesh = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.1, 1.1), pileBoxMat);
-                targetPlayer.boxMesh.position.set(0, 2.1, 0); targetPlayer.model.root.add(targetPlayer.boxMesh); targetPlayer.model.torso.scale.set(1.2, 0.7, 1.2);
-            } else if (!data.isCarrying && targetPlayer.isCarrying) {
-                targetPlayer.isCarrying = false; if (targetPlayer.boxMesh) targetPlayer.model.root.remove(targetPlayer.boxMesh); targetPlayer.model.torso.scale.set(1, 1, 1);
-            }
-        }
-    })
-    .on('broadcast', { event: 'score_update' }, (payload) => {
-        const data = payload.payload; const targetPlayer = playersEntities.find(p => p.slot === data.slot);
-        if (targetPlayer) { targetPlayer.score = data.score; const el = document.getElementById(`score-slot-${data.slot}`); if (el) el.innerText = data.score; }
-    })
-    .on('broadcast', { event: 'time_sync' }, (payload) => { if (gameState.gameStarted && !gameState.isHost) { gameState.gameTime = payload.payload.time; renderTimerText(); } })
-    .on('broadcast', { event: 'trigger_item_effect' }, (payload) => { handleRemoteItemTrigger(payload.payload); })
-    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'game_rooms', filter: `id=eq.${gameState.currentRoomId}` }, () => {
-        if (gameState.gameStarted) handleGameEndSequence(true);
-        else { alert("방장이 퇴장하여 방이 해체되었습니다."); window.leaveRoom(); }
-    })
-    .subscribe(async (status) => { if (status === 'SUBSCRIBED') { await gameState.roomChannel.track({ nickname: gameState.playerNickname, joinedAt: Date.now() }); } });
-}
-
-export async function requestStartGame() {
-    const client = getSupabase();
-    if (!gameState.isHost || !gameState.roomChannel) return;
-    if (gameState.totalRoomPlayers.length !== 4) { alert("플레이어 4명이 모두 모여야 시작할 수 있습니다!"); return; }
-    await client.from('game_rooms').update({ is_started: true }).eq('id', gameState.currentRoomId);
-    gameState.roomChannel.send({ type: 'broadcast', event: 'game_start', payload: { players: gameState.totalRoomPlayers } });
-    initActiveMatchEntities(gameState.totalRoomPlayers);
-}
-
-export function broadcastMyLocation() {
-    const myEnt = playersEntities[gameState.mySlotIndex]; if (!myEnt || !gameState.roomChannel) return;
-    gameState.roomChannel.send({
-        type: 'broadcast', event: 'player_move',
-        payload: { id: gameState.loggedInUser.id, slot: gameState.mySlotIndex, x: myEnt.model.root.position.x, y: myEnt.model.root.position.y, z: myEnt.model.root.position.z, rotY: myEnt.model.root.rotation.y, isCarrying: myEnt.isCarrying }
-    });
-}
-
-export function sendScoreUpdate(slotIndex, currentScore) {
-    if (gameState.roomChannel) gameState.roomChannel.send({ type: 'broadcast', event: 'score_update', payload: { slot: slotIndex, score: currentScore } });
-}
-
-export function sendItemTrigger(payloadData) {
-    if (gameState.roomChannel) gameState.roomChannel.send({ type: 'broadcast', event: 'trigger_item_effect', payload: payloadData });
-}
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
