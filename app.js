@@ -23,7 +23,6 @@ export const gameState = {
 export async function loadUserData() {
     if (!gameState.loggedInUser) return;
     try {
-        // 💡 주입된 명시적 supabaseClient 인스턴스를 활용하여 캐싱 오류를 사전 차단합니다.
         const { data: profile, error } = await supabaseClient.from('user_profiles').select('*').eq('id', gameState.loggedInUser.id).single();
         if (error || !profile) {
             gameState.playerNickname = "플레이어";
@@ -40,11 +39,8 @@ export async function loadUserData() {
     }
 }
 
-// DOM 콘텐츠가 전부 준비된 직후 window 객체에 이벤트 매핑 강제 주입
-window.handleSignUp = handleAuthSignUp;
-window.handleSignIn = handleAuthSignIn;
-
-window.toggleAuthMode = function(isSignUpMode) {
+// UI 전환 로직 (회원가입 <-> 로그인)
+function toggleAuthMode(isSignUpMode) {
     const title = document.getElementById('auth-title');
     const nickInput = document.getElementById('auth-nickname');
     const signinBtn = document.getElementById('btn-signin-submit');
@@ -57,52 +53,84 @@ window.toggleAuthMode = function(isSignUpMode) {
 
     if (isSignUpMode) {
         title.innerText = "회원가입"; nickInput.style.display = "block"; signinBtn.style.display = "none"; signupBtn.style.display = "block";
-        toggleContainer.innerHTML = `이미 계정이 있으신가요?<span class="auth-toggle-link" onclick="window.toggleAuthMode(false)">로그인하기</span>`;
+        toggleContainer.innerHTML = `이미 계정이 있으신가요?<span class="auth-toggle-link" id="link-to-signin">로그인하기</span>`;
+        document.getElementById('link-to-signin').addEventListener('click', () => toggleAuthMode(false));
     } else {
         title.innerText = "WHAT THE BOX!"; nickInput.style.display = "none"; signinBtn.style.display = "block"; signupBtn.style.display = "none";
-        toggleContainer.innerHTML = `계정이 없으신가요?<span class="auth-toggle-link" onclick="window.toggleAuthMode(true)">회원가입하기</span>`;
+        toggleContainer.innerHTML = `계정이 없으신가요?<span class="auth-toggle-link" id="link-to-signup">회원가입하기</span>`;
+        document.getElementById('link-to-signup').addEventListener('click', () => toggleAuthMode(true));
     }
-};
+}
 
-window.showLobbyOptions = function() {
-    document.getElementById('lobby-main-menu').style.display = "none";
-    document.getElementById('lobby-mode-panel').style.display = "flex";
-};
+// 💡 이벤트 리스너 등록 (onclick 대체 완료)
+document.addEventListener('DOMContentLoaded', () => {
+    // 인증 관련 이벤트
+    document.getElementById('btn-signin-submit').addEventListener('click', handleAuthSignIn);
+    document.getElementById('btn-signup-submit').addEventListener('click', handleAuthSignUp);
+    
+    const initialSignupLink = document.getElementById('link-to-signup');
+    if (initialSignupLink) {
+        initialSignupLink.addEventListener('click', () => toggleAuthMode(true));
+    }
 
-window.openJoinCodePopup = function() {
-    document.getElementById('lobby-mode-panel').style.display = "none";
-    document.getElementById('join-code-popup').style.display = "block";
-    const codeInput = document.getElementById('input-room-code');
-    codeInput.value = "";
-    document.getElementById('input-code-mirror').innerText = "____";
-    codeInput.focus();
-};
+    // 로비 메인 메뉴 관련 이벤트
+    document.getElementById('start-btn').addEventListener('click', () => {
+        document.getElementById('lobby-main-menu').style.display = "none";
+        document.getElementById('lobby-mode-panel').style.display = "flex";
+    });
 
-window.closeJoinCodePopup = function() {
-    document.getElementById('join-code-popup').style.display = "none";
-    document.getElementById('lobby-mode-panel').style.display = "flex";
-};
+    document.getElementById('btn-create-panel').addEventListener('click', createGameRoom);
+    
+    document.getElementById('btn-join-panel').addEventListener('click', () => {
+        document.getElementById('lobby-mode-panel').style.display = "none";
+        document.getElementById('join-code-popup').style.display = "block";
+        const codeInput = document.getElementById('input-room-code');
+        codeInput.value = "";
+        document.getElementById('input-code-mirror').innerText = "____";
+        codeInput.focus();
+    });
 
-window.openSkinShop = function() { document.getElementById("skin-shop-popup").style.display = "block"; };
-window.closeSkinShop = function() { document.getElementById("skin-shop-popup").style.display = "none"; };
-window.purchaseSkin = function(skinId) { alert(skinId + " 스킨 기능 개발 중입니다!"); };
+    document.getElementById('btn-code-cancel').addEventListener('click', () => {
+        document.getElementById('join-code-popup').style.display = "none";
+        document.getElementById('lobby-mode-panel').style.display = "flex";
+    });
 
-window.createRoom = createGameRoom;
-window.submitJoinRoomCode = submitJoinRoomCode;
-window.leaveRoom = leaveRoomLobby;
-window.requestStartGame = requestStartGame;
+    document.getElementById('btn-code-confirm').addEventListener('click', submitJoinRoomCode);
+    document.getElementById('btn-leave-room').addEventListener('click', leaveRoomLobby);
+    document.getElementById('btn-match-start').addEventListener('click', requestStartGame);
 
-window.buyItem = buyItem;
-window.executeThanosSnap = executeThanosSnap;
-window.closeThanosPopup = closeThanosPopup;
-window.exitGameOverToLobby = exitGameOverToLobby;
+    // 상점 및 기타 팝업 이벤트
+    document.getElementById('shop-open-btn').addEventListener('click', () => {
+        document.getElementById("skin-shop-popup").style.display = "block";
+    });
+    document.getElementById('shop-close-btn').addEventListener('click', () => {
+        document.getElementById("skin-shop-popup").style.display = "none";
+    });
+
+    // 스킨 구매 버튼 이벤트 예시 등록
+    ['safari', 'chef', 'hero'].forEach(skinId => {
+        const btn = document.getElementById(`btn-skin-${skinId}`);
+        if (btn) {
+            btn.addEventListener('click', () => alert(skinId + " 스킨 기능 개발 중입니다!"));
+        }
+    });
+
+    // 인게임 HUD 및 아이템 상점 이벤트
+    document.getElementById('btn-banana').addEventListener('click', () => buyItem('banana', 10));
+    document.getElementById('btn-powerup').addEventListener('click', () => buyItem('powerup', 30));
+    document.getElementById('btn-magnet').addEventListener('click', () => buyItem('magnet', 50));
+    document.getElementById('btn-ice').addEventListener('click', () => buyItem('ice', 70));
+    document.getElementById('btn-thanos').addEventListener('click', openThanosPopup);
+    document.getElementById('btn-thanos-cancel').addEventListener('click', closeThanosPopup);
+    document.getElementById('btn-end-exit').addEventListener('click', exitGameOverToLobby);
+});
 
 // 키보드 엔터 인증 인터럽트 리스너
 const triggerAuthOnEnter = (e) => {
     if (e.key === 'Enter') {
         const isSignUpMode = document.getElementById('btn-signup-submit').style.display === "block";
-        if (isSignUpMode) window.handleSignUp();
-        else window.handleSignIn();
+        if (isSignUpMode) handleAuthSignUp();
+        else handleAuthSignIn();
     }
 };
 document.getElementById('auth-email').addEventListener('keydown', triggerAuthOnEnter);
@@ -119,3 +147,5 @@ document.getElementById('input-room-code').addEventListener('input', function(e)
     }
     document.getElementById('input-code-mirror').innerText = displayStr;
 });
+
+// 글로벌 스코프 노출 제거 처리 완료
