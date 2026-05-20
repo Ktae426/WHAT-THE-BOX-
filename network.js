@@ -5,9 +5,19 @@ import * as THREE from 'https://unpkg.com/three@0.128.0/build/three.module.js';
 const SUPABASE_URL = "https://djcxkcuylpfvpsclxlma.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqY3hrY3V5bHBmdnBzY2x4bG1hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMTM0MzgsImV4cCI6MjA5NDY4OTQzOH0.PVhhYl5kKP38DIPqk3LUI3dtcXLqmvykJPgkga5GrKw";
 
-// Supabase 클라이언트 초기화 및 전역 등록
-export const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-window.supabaseClient = supabaseClient;
+export let supabaseClient = null;
+
+// 스크립트 로드 타이밍 이슈 우회를 위한 안전 초기화 헬퍼 함수
+function getSupabase() {
+    if (!supabaseClient) {
+        if (typeof supabase === 'undefined') {
+            throw new Error("Supabase SDK가 아직 로드되지 않았습니다. 잠시 후 다시 시도하세요.");
+        }
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        window.supabaseClient = supabaseClient;
+    }
+    return supabaseClient;
+}
 
 // 회원 가입 API 로직
 export async function handleAuthSignUp() {
@@ -21,10 +31,11 @@ export async function handleAuthSignUp() {
     if (password.length < 6) { errorMsg.innerText = "비밀번호는 6자리 이상이어야 합니다."; errorMsg.style.display = "block"; return; }
 
     try {
-        const { data, error } = await supabaseClient.auth.signUp({ email, password });
+        const client = getSupabase();
+        const { data, error } = await client.auth.signUp({ email, password });
         if (error) { errorMsg.innerText = "회원가입 실패: " + error.message; errorMsg.style.display = "block"; return; }
         if (data.user) {
-            await supabaseClient.from('user_profiles').insert([{ id: data.user.id, nickname: nickname, credits: 0, owned_skins: { basic: true } }]);
+            await client.from('user_profiles').insert([{ id: data.user.id, nickname: nickname, credits: 0, owned_skins: { basic: true } }]);
         }
         errorMsg.innerText = "회원가입 완료! 로그인을 진행해 주세요."; errorMsg.style.color = "#22c55e"; errorMsg.style.display = "block";
         setTimeout(() => { errorMsg.style.color = "#ef4444"; window.toggleAuthMode(false); }, 1500);
@@ -43,7 +54,8 @@ export async function handleAuthSignIn() {
     if (!email || !password) { errorMsg.innerText = "이메일과 비밀번호를 입력해 주세요."; errorMsg.style.display = "block"; return; }
     
     try {
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        const client = getSupabase();
+        const { data, error } = await client.auth.signInWithPassword({ email, password });
         if (error) { errorMsg.innerText = "로그인 실패: 이메일 또는 비밀번호가 일치하지 않습니다."; errorMsg.style.display = "block"; return; }
         
         gameState.loggedInUser = data.user;
@@ -61,8 +73,9 @@ export async function handleAuthSignIn() {
 
 // 매치 메이킹: 방 개설 프로시저
 export async function createGameRoom() {
+    const client = getSupabase();
     const code = Math.floor(1000 + Math.random() * 9000).toString();
-    const { data, error } = await supabaseClient.from('game_rooms').insert([
+    const { data, error } = await client.from('game_rooms').insert([
         { room_code: code, players: [], is_started: false, created_at: new Date() }
     ]).select().single();
     if (error) { alert("방 생성 실패"); return; }
@@ -72,9 +85,10 @@ export async function createGameRoom() {
 
 // 매치 메이킹: 방 참가 프로시저
 export async function submitJoinRoomCode() {
+    const client = getSupabase();
     const code = document.getElementById('input-room-code').value.trim();
     if (code.length !== 4) { alert("4자리 숫자를 입력해주세요."); return; }
-    const { data: room, error } = await supabaseClient.from('game_rooms').select('*').eq('room_code', code).eq('is_started', false).single();
+    const { data: room, error } = await client.from('game_rooms').select('*').eq('room_code', code).eq('is_started', false).single();
     if (error || !room) { alert("존재하지 않거나 이미 시작된 방입니다."); return; }
     gameState.currentRoomId = room.id; gameState.currentRoomCode = code; gameState.isHost = false;
     document.getElementById('join-code-popup').style.display = "none";
@@ -83,8 +97,9 @@ export async function submitJoinRoomCode() {
 
 // 대기실 퇴장 메커니즘
 export async function leaveRoomLobby() {
+    const client = getSupabase();
     if (gameState.roomChannel) { gameState.roomChannel.unsubscribe(); gameState.roomChannel = null; }
-    if (gameState.isHost && gameState.currentRoomId) { await supabaseClient.from('game_rooms').delete().eq('id', gameState.currentRoomId); }
+    if (gameState.isHost && gameState.currentRoomId) { await client.from('game_rooms').delete().eq('id', gameState.currentRoomId); }
     gameState.currentRoomId = null; gameState.currentRoomCode = null; gameState.isHost = false;
     document.getElementById('lobby-room-view').style.display = "none";
     document.getElementById('lobby-mode-panel').style.display = "flex";
@@ -112,8 +127,9 @@ export function setupRoomLobbyUI(code, syncedPlayers) {
 
 // 실시간 Presence 및 Broadcast 이벤트 바인딩 드라이버
 export function subscribeRoomPresence() {
-    if (gameState.roomChannel) { supabaseClient.removeChannel(gameState.roomChannel); }
-    gameState.roomChannel = supabaseClient.channel(`room_${gameState.currentRoomId}`, { config: { presence: { key: gameState.loggedInUser.id } } });
+    const client = getSupabase();
+    if (gameState.roomChannel) { client.removeChannel(gameState.roomChannel); }
+    gameState.roomChannel = client.channel(`room_${gameState.currentRoomId}`, { config: { presence: { key: gameState.loggedInUser.id } } });
 
     gameState.roomChannel
     .on('presence', { event: 'sync' }, () => {
@@ -156,9 +172,10 @@ export function subscribeRoomPresence() {
 }
 
 export async function requestStartGame() {
+    const client = getSupabase();
     if (!gameState.isHost || !gameState.roomChannel) return;
     if (gameState.totalRoomPlayers.length !== 4) { alert("플레이어 4명이 모두 모여야 시작할 수 있습니다!"); return; }
-    await supabaseClient.from('game_rooms').update({ is_started: true }).eq('id', gameState.currentRoomId);
+    await client.from('game_rooms').update({ is_started: true }).eq('id', gameState.currentRoomId);
     gameState.roomChannel.send({ type: 'broadcast', event: 'game_start', payload: { players: gameState.totalRoomPlayers } });
     initActiveMatchEntities(gameState.totalRoomPlayers);
 }
