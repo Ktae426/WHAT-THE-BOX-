@@ -1,0 +1,234 @@
+body { margin: 0; overflow: hidden; background-color: #a5f3fc; user-select: none; font-family: 'Malgun Gothic', sans-serif; }
+        
+#bg-blur {
+    position: absolute; width: 100%; height: 100%;
+    background: linear-gradient(135deg, #bae6fd 0%, #e0f2fe 50%, #fef08a 100%);
+    z-index: -1;
+}
+
+/* ================= 🔐 로그인/회원가입 화면 UI ================= */
+#auth-screen {
+    position: absolute; width: 100%; height: 100%;
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 1000; transition: opacity 0.4s ease;
+}
+#auth-frame {
+    background: rgba(255, 255, 255, 0.96); padding: 40px 50px; border-radius: 40px;
+    box-shadow: 0 35px 60px rgba(15, 23, 42, 0.15); text-align: center; width: 380px;
+    border: 8px solid #ffffff; position: relative;
+}
+#auth-frame h2 { margin-top: 0; color: #1e4ed8; font-size: 36px; font-weight: 900; margin-bottom: 25px; letter-spacing: -1px; }
+.auth-input {
+    width: 90%; padding: 12px 16px; margin-bottom: 15px; border-radius: 12px;
+    border: 2px solid #cbd5e1; font-size: 16px; outline: none; transition: border 0.2s;
+}
+.auth-input:focus { border-color: #38bdf8; }
+.auth-btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; align-items: center; width: 100%; }
+.auth-btn {
+    width: 98%; padding: 12px 0; font-size: 16px; font-weight: 900; color: white; border: none;
+    border-radius: 14px; cursor: pointer; transition: transform 0.1s;
+}
+#btn-signin-submit { background: #3b82f6; box-shadow: 0 4px 0 #2563eb; }
+#btn-signup-submit { background: #22c55e; box-shadow: 0 4px 0 #16a34a; }
+.auth-btn:active { transform: translateY(3px); box-shadow: none; }
+
+.auth-toggle-text { margin-top: 20px; font-size: 14px; color: #64748b; font-weight: bold; }
+.auth-toggle-link { color: #3b82f6; cursor: pointer; text-decoration: underline; margin-left: 5px; }
+
+#auth-error-msg {
+    color: #ef4444; font-size: 14px; font-weight: bold; margin-top: 10px; display: none;
+}
+
+/* ================= 🚀 시작 화면 및 멀티플레이 대기실 UI ================= */
+#start-screen {
+    position: absolute; width: 100%; height: 100%;
+    background: radial-gradient(circle, #e0f2fe 0%, #bae6fd 60%, #38bdf8 100%);
+    display: none; flex-direction: column; justify-content: center; align-items: center;
+    z-index: 100; transition: opacity 0.4s ease; overflow: hidden;
+}
+
+#start-frame {
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(241, 245, 249, 0.95) 100%);
+    padding: 50px 80px; border-radius: 40px; border: 8px solid #ffffff;
+    box-shadow: 0 35px 60px rgba(15, 23, 42, 0.25); text-align: center; width: 750px; max-width: 90vw; position: relative;
+}
+
+#title-container { 
+    position: relative; margin-bottom: 35px; display: flex; flex-direction: column; align-items: center; gap: 5px;
+    animation: bounceTitle 2s infinite ease-in-out; 
+}
+@keyframes bounceTitle {
+    0%, 100% { transform: translateY(0) rotate(-1deg); }
+    50% { transform: translateY(-8px) rotate(1deg); }
+}
+.main-title { 
+    font-size: 82px; font-weight: 950; line-height: 1.0; letter-spacing: 1px; display: block; 
+    font-family: 'Arial Black', 'Impact', sans-serif; -webkit-text-stroke: 4px #1e293b;
+}
+.title-what-the { color: #ffb703; text-shadow: 5px 5px 0px #1e293b; }
+.title-box { color: #3a86ff; font-size: 96px; text-shadow: 5px 5px 0px #1e293b; }
+
+.menu-btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; width: 100%; }
+
+#start-btn {
+    padding: 16px 74px; font-size: 34px; font-weight: 900; color: #ffffff;
+    background: linear-gradient(to bottom, #4ade80 0%, #22c55e 100%);
+    border: 6px solid #ffffff; border-radius: 50px; cursor: pointer;
+    box-shadow: 0 10px 0 #16a34a, 0 20px 25px rgba(22, 163, 74, 0.4);
+    transition: transform 0.05s; display: flex; align-items: center; gap: 15px; outline: none;
+}
+#start-btn:active { transform: translateY(6px); box-shadow: 0 4px 0 #16a34a; }
+
+#shop-open-btn {
+    padding: 12px 50px; font-size: 22px; font-weight: 900; color: #ffffff;
+    background: linear-gradient(to bottom, #a855f7 0%, #7e22ce 100%);
+    border: 4px solid #ffffff; border-radius: 40px; cursor: pointer;
+    box-shadow: 0 6px 0 #6b21a8; transition: transform 0.05s; display: flex; align-items: center; gap: 10px;
+}
+#shop-open-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #6b21a8; }
+
+#lobby-mode-panel { display: flex; gap: 20px; margin-top: 10px; }
+.lobby-panel-btn { width: 200px; padding: 14px 0; font-size: 20px; font-weight: 900; color: white; border: 4px solid white; border-radius: 20px; cursor: pointer; box-shadow: 0 6px 0 rgba(0,0,0,0.15); text-align: center; }
+#btn-create-panel { background: #3b82f6; box-shadow: 0 6px 0 #1d4ed8; }
+#btn-join-panel { background: #f59e0b; box-shadow: 0 6px 0 #b45309; }
+.lobby-panel-btn:active { transform: translateY(4px); box-shadow: none; }
+
+/* ================= 🗳️ 방 코드 입력 팝업 UI ================= */
+#join-code-popup {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: white; padding: 35px; border-radius: 30px;
+    border: 3px solid #f59e0b; box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+    text-align: center; z-index: 500; display: none; width: 340px;
+}
+#join-code-popup h3 { margin: 0 0 15px 0; font-size: 26px; color: #b45309; font-weight: 900; }
+
+.code-input-wrapper {
+    position: relative; width: 80%; margin: 0 auto 20px auto; height: 53px;
+}
+#input-room-code {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    padding: 0; font-size: 24px; font-weight: 900; text-align: center;
+    border: 3px solid #cbd5e1; border-radius: 15px; outline: none;
+    background: transparent; color: transparent; caret-color: transparent;
+    z-index: 2; box-sizing: border-box; letter-spacing: 24px; padding-left: 24px;
+}
+#input-room-code:focus { border-color: #f59e0b; }
+
+#input-code-mirror {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 26px; font-weight: 900; color: #334155;
+    background: #ffffff; border-radius: 15px; pointer-events: none;
+    z-index: 1; box-sizing: border-box; letter-spacing: 16px; padding-left: 14px;
+}
+
+.popup-btn-group { display: flex; gap: 15px; justify-content: center; }
+.popup-btn { 
+    padding: 12px 30px; font-size: 18px; font-weight: 900; border: none; 
+    border-radius: 14px; cursor: pointer; transition: transform 0.1s; 
+}
+.popup-btn:active { transform: translateY(2px); }
+#btn-code-confirm { background: #f59e0b; color: white; }
+#btn-code-cancel { background: #e2e8f0; color: #475569; }
+
+#lobby-room-view { display: none; width: 100%; flex-direction: column; align-items: center; margin-top: 10px; }
+#room-code-display { font-size: 24px; font-weight: 900; color: #1e293b; background: #e2e8f0; padding: 10px 30px; border-radius: 15px; margin-bottom: 20px; }
+.player-list-container { width: 80%; background: white; border: 4px solid #cbd5e1; border-radius: 20px; padding: 15px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.player-slot-ui { display: flex; justify-content: space-between; padding: 10px 20px; border-radius: 12px; font-weight: 900; color: white; font-size: 16px; }
+
+.lobby-action-group { display: flex; gap: 15px; justify-content: center; width: 80%; }
+#btn-match-start {
+    flex: 1; padding: 14px 0; font-size: 26px; font-weight: 900; color: white; background: #cbd5e1;
+    border: 4px solid white; border-radius: 30px; cursor: not-allowed; box-shadow: 0 6px 0 #94a3b8;
+}
+#btn-match-start.ready { background: #22c55e; cursor: pointer; box-shadow: 0 6px 0 #16a34a; }
+
+#btn-leave-room {
+    flex: 1; padding: 14px 0; font-size: 26px; font-weight: 900; color: white; background: #ef4444;
+    border: 4px solid white; border-radius: 30px; cursor: pointer; box-shadow: 0 6px 0 #b91c1c;
+}
+
+.decor-item { position: absolute; pointer-events: none; }
+.decor-box { font-size: 52px; filter: drop-shadow(0 10px 8px rgba(0,0,0,0.15)); }
+#box1 { top: -40px; left: -20px; transform: rotate(-25deg) scale(1.2); }
+#box2 { bottom: -30px; right: -40px; transform: rotate(35deg) scale(1.3); }
+
+.decor-banana { font-size: 70px; color: #fbbf24; text-shadow: 3px 3px 0 #1e293b; }
+#banana1 { bottom: -30px; left: 140px; transform: rotate(45deg); }
+#banana2 { top: -40px; right: 200px; transform: rotate(-60deg); }
+
+/* ================= 🛍️ 스킨 상점 팝업창 UI ================= */
+#skin-shop-popup {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: white; padding: 40px; border-radius: 36px;
+    border: 8px solid #a855f7; box-shadow: 0 30px 70px rgba(0,0,0,0.4);
+    text-align: center; z-index: 200; display: none; width: 620px;
+}
+#skin-shop-popup h2 { margin: 0 0 5px 0; font-size: 38px; color: #7e22ce; font-weight: 900; }
+.my-credit-info { font-size: 18px; font-weight: bold; color: #475569; margin-bottom: 25px; }
+.my-credit-info span { color: #eab308; font-weight: 900; }
+.skin-item-list { display: flex; justify-content: space-between; gap: 15px; margin-bottom: 30px; }
+.skin-card { flex: 1; background: #f8fafc; border: 4px solid #cbd5e1; border-radius: 24px; padding: 20px 10px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.skin-card.active { border-color: #4ade80; background: #f0fdf4; }
+.skin-buy-btn { width: 90%; padding: 10px 0; font-size: 14px; font-weight: 900; border: none; border-radius: 14px; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.15); }
+.skin-buy-btn.buy { background: #3b82f6; color: white; }
+.skin-buy-btn.equip { background: #e2e8f0; color: #475569; border: 2px solid #cbd5e1; }
+.skin-buy-btn.equipped { background: #4ade80; color: white; }
+#shop-close-btn { padding: 10px 30px; font-size: 16px; font-weight: 900; color: #64748b; background: #f1f5f9; border: 3px solid #cbd5e1; border-radius: 20px; cursor: pointer; }
+
+/* ================= 🏆 게임 결과 팝업창 UI ================= */
+#game-over-screen {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 45px; border-radius: 40px;
+    border: 4px solid #cbd5e1; box-shadow: 0 25px 60px rgba(51, 65, 85, 0.15);
+    text-align: center; z-index: 2000; display: none; width: 460px;
+}
+#game-over-screen h2 { margin: 0 0 20px 0; font-size: 42px; color: #334155; font-weight: 900; letter-spacing: -1px; }
+.result-list { width: 100%; margin-bottom: 30px; display: flex; flex-direction: column; gap: 10px; }
+.result-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 22px; border-radius: 18px; font-size: 17px; font-weight: 800; color: white; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.15); }
+.res-gold-badge { background: rgba(255, 255, 255, 0.25); color: white; padding: 4px 12px; border-radius: 10px; font-size: 14px; font-weight: 900; border: 1px solid rgba(255,255,255,0.4); }
+#btn-end-exit { padding: 14px 50px; font-size: 22px; font-weight: 900; color: #475569; background: #e2e8f0; border: 3px solid #cbd5e1; border-radius: 30px; cursor: pointer; box-shadow: 0 5px 0 #cbd5e1; transition: all 0.1s; }
+#btn-end-exit:active { transform: translateY(4px); box-shadow: none; }
+
+/* ================= 😈 타노스 아이템 전용 플레이어 선택 팝업 ================= */
+#thanos-popup {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: white; padding: 30px; border-radius: 30px;
+    border: 6px solid #b91c1c; box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+    text-align: center; z-index: 1500; display: none; width: 400px;
+}
+#thanos-popup h3 { margin: 0 0 15px 0; font-size: 24px; color: #b91c1c; font-weight: 900; }
+.thanos-player-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.thanos-player-btn {
+    display: flex; justify-content: space-between; padding: 12px 20px; border-radius: 15px; font-weight: 900;
+    cursor: pointer; transition: background 0.2s; border: none; color: white; font-size: 16px;
+}
+.thanos-player-btn:hover { filter: brightness(1.1); }
+#btn-thanos-cancel { padding: 10px 25px; font-size: 16px; font-weight: 900; border-radius: 15px; cursor: pointer; background: #e2e8f0; color: #475569; border: none; }
+
+/* ================= 🎨 인게임 HUD 스타일링 ================= */
+.hud { position: absolute; color: #334155; background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%); padding: 14px 18px; border-radius: 24px; border: 6px solid #334155; box-shadow: 0 10px 0 #1e293b; z-index: 10; display: none; }
+#ranking-board { top: 20px; left: 20px; width: 230px; }
+.rank-title { font-size: 20px; font-weight: 900; color: #1e293b; margin-bottom: 12px; display: block; text-align: center; }
+.rank-slot { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; margin: 6px 0; border-radius: 14px; font-weight: 900; font-size: 15px; color: white; box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.2); }
+.rank-0 { background: #ef4444; border: 2px solid #b91c1c; }
+.rank-1 { background: #1e4ed8; border: 2px solid #1e3a8a; } 
+.rank-2 { background: #f59e0b; border: 2px solid #d97706; }
+.rank-3 { background: #056517; border: 2px solid #023c0e; }
+
+#timer-box { top: 20px; left: 50%; transform: translateX(-50%); font-size: 28px; font-weight: 900; padding: 10px 44px; border-radius: 28px; color: #1e293b; }
+#item-shop { top: 20px; right: 20px; width: 260px; }
+.shop-title { font-size: 16px; font-weight: 900; color: #1e293b; margin-bottom: 12px; display: block; text-align: center; }
+.shop-btn { width: 100%; padding: 12px; margin: 6px 0; border: 4px solid #334155; border-radius: 18px; background: #ffffff; color: #334155; font-weight: 900; font-size: 14px; cursor: pointer; box-shadow: 0 5px 0 #334155; text-align: left; padding-left: 14px; }
+.shop-btn:disabled { background: #cbd5e1; color: #94a3b8; border-color: #94a3b8; box-shadow: none; cursor: not-allowed; opacity: 0.5; }
+
+#inventory-hud { 
+    position: absolute !important; bottom: 25px !important; left: 50% !important; transform: translateX(-50%) !important; 
+    width: 480px !important; display: none; flex-direction: row !important; justify-content: space-between !important; gap: 15px !important; 
+    padding: 14px !important; box-sizing: border-box;
+}
+.slot-box { flex: 1 !important; padding: 12px 10px; border: 4px solid #475569; border-radius: 18px; text-align: center; font-weight: 900; font-size: 15px; background: #ffffff; white-space: nowrap; }
+.slot-box span:first-child { color: #64748b; font-size: 12px; display: block; margin-bottom: 4px;}
+.active-item { color: #f97316; font-size: 16px; font-weight: 900; display:block; }
