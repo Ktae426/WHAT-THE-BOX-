@@ -1,4 +1,4 @@
-import { handleAuthSignIn, handleAuthSignUp, createGameRoom, submitJoinRoomCode, leaveRoomLobby, requestStartGame } from './network.js';
+import { handleAuthSignIn, handleAuthSignUp, createGameRoom, submitJoinRoomCode, leaveRoomLobby, requestStartGame, supabaseClient } from './network.js';
 import { buyItem, openThanosPopup, closeThanosPopup, executeThanosSnap, exitGameOverToLobby } from './game-engine.js';
 
 // 글로벌 상태 객체 (단 한 번만 선언)
@@ -23,7 +23,8 @@ export const gameState = {
 export async function loadUserData() {
     if (!gameState.loggedInUser) return;
     try {
-        const { data: profile, error } = await window.supabaseClient.from('user_profiles').select('*').eq('id', gameState.loggedInUser.id).single();
+        // 💡 주입된 명시적 supabaseClient 인스턴스를 활용하여 캐싱 오류를 사전 차단합니다.
+        const { data: profile, error } = await supabaseClient.from('user_profiles').select('*').eq('id', gameState.loggedInUser.id).single();
         if (error || !profile) {
             gameState.playerNickname = "플레이어";
             gameState.userCredits = 0;
