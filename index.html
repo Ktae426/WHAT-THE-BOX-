@@ -16,12 +16,12 @@
             <input type="text" id="auth-nickname" class="auth-input" placeholder="게임 닉네임" style="display: none;">
             <input type="password" id="auth-password" class="auth-input" placeholder="비밀번호 (6자리 이상)">
             <div class="auth-btn-group">
-                <button id="btn-signin-submit" class="auth-btn" onclick="window.handleSignIn()">로그인</button>
-                <button id="btn-signup-submit" class="auth-btn" onclick="window.handleSignUp()" style="display: none;">회원가입 완료</button>
+                <button id="btn-signin-submit" class="auth-btn">로그인</button>
+                <button id="btn-signup-submit" class="auth-btn" style="display: none;">회원가입 완료</button>
             </div>
             <div id="auth-error-msg"></div>
             <div class="auth-toggle-text" id="auth-toggle-container">
-                계정이 없으신가요?<span class="auth-toggle-link" onclick="window.toggleAuthMode(true)">회원가입하기</span>
+                계정이 없으신가요?<span class="auth-toggle-link" id="link-to-signup">회원가입하기</span>
             </div>
         </div>
     </div>
@@ -39,17 +39,17 @@
             </div>
 
             <div class="menu-btn-group" id="lobby-main-menu">
-                <button id="start-btn" onclick="window.showLobbyOptions()">
+                <button id="start-btn">
                     <span class="btn-glove">🥊</span><span>START GAME</span><span class="btn-glove">🥊</span>
                 </button>
-                <button id="shop-open-btn" onclick="window.openSkinShop()">
+                <button id="shop-open-btn">
                     <span>🛒</span><span>스킨 상점</span>
                 </button>
             </div>
 
             <div id="lobby-mode-panel" style="display: none;">
-                <button class="lobby-panel-btn" id="btn-create-panel" onclick="window.createRoom()">방 만들기</button>
-                <button class="lobby-panel-btn" id="btn-join-panel" onclick="window.openJoinCodePopup()">방 참가하기</button>
+                <button class="lobby-panel-btn" id="btn-create-panel">방 만들기</button>
+                <button class="lobby-panel-btn" id="btn-join-panel">방 참가하기</button>
             </div>
 
             <div id="join-code-popup">
@@ -59,8 +59,8 @@
                     <div id="input-code-mirror">____</div>
                 </div>
                 <div class="popup-btn-group">
-                    <button class="popup-btn" id="btn-code-confirm" onclick="window.submitJoinRoomCode()">입장</button>
-                    <button class="popup-btn" id="btn-code-cancel" onclick="window.closeJoinCodePopup()">취소</button>
+                    <button class="popup-btn" id="btn-code-confirm">입장</button>
+                    <button class="popup-btn" id="btn-code-cancel">취소</button>
                 </div>
             </div>
 
@@ -69,8 +69,8 @@
                 <p id="txt-player-count-header" style="font-weight: bold; color: #475569;">대기 중인 플레이어 (0/4)</p>
                 <div class="player-list-container" id="ui-player-list"></div>
                 <div class="lobby-action-group">
-                    <button id="btn-match-start" onclick="window.requestStartGame()">게임 시작</button>
-                    <button id="btn-leave-room" onclick="window.leaveRoom()">방 나가기</button>
+                    <button id="btn-match-start">게임 시작</button>
+                    <button id="btn-leave-room">방 나가기</button>
                 </div>
             </div>
         </div>
@@ -80,23 +80,23 @@
         <h2>🛍️ 명품 스킨 상점</h2>
         <div class="my-credit-info">보유 크레딧: <span id="popup-credit-txt">0</span> Credit</div>
         <div class="skin-item-list">
-            <div class="skin-card" id="card-safari"><div class="skin-card-title">사파리 캡</div><div class="skin-preview-box">🤠</div><button class="skin-buy-btn buy" id="btn-skin-safari" onclick="window.purchaseSkin('safari')">구매하기</button></div>
-            <div class="skin-card" id="card-chef"><div class="skin-card-title">일류 요리사</div><div class="skin-preview-box">👨‍🍳</div><button class="skin-buy-btn buy" id="btn-skin-chef" onclick="window.purchaseSkin('chef')">구매하기</button></div>
-            <div class="skin-card" id="card-hero"><div class="skin-card-title">히어로 윙스</div><div class="skin-preview-box">👼</div><button class="skin-buy-btn buy" id="btn-skin-hero" onclick="window.purchaseSkin('hero')">구매하기</button></div>
+            <div class="skin-card" id="card-safari"><div class="skin-card-title">사파리 캡</div><div class="skin-preview-box">🤠</div><button class="skin-buy-btn buy" id="btn-skin-safari">구매하기</button></div>
+            <div class="skin-card" id="card-chef"><div class="skin-card-title">일류 요리사</div><div class="skin-preview-box">👨‍🍳</div><button class="skin-buy-btn buy" id="btn-skin-chef">구매하기</button></div>
+            <div class="skin-card" id="card-hero"><div class="skin-card-title">히어로 윙스</div><div class="skin-preview-box">👼</div><button class="skin-buy-btn buy" id="btn-skin-hero">구매하기</button></div>
         </div>
-        <button id="shop-close-btn" onclick="window.closeSkinShop()">나가기</button>
+        <button id="shop-close-btn">나가기</button>
     </div>
 
     <div id="game-over-screen">
         <h2>🏁 게임 종료!</h2>
         <div id="result-container" class="result-list"></div>
-        <button id="btn-end-exit" onclick="window.exitGameOverToLobby()">나가기</button>
+        <button id="btn-end-exit">나가기</button>
     </div>
 
     <div id="thanos-popup">
         <h3>점수를 뺏을 플레이어 선택</h3>
         <div class="thanos-player-list" id="thanos-players-container"></div>
-        <button id="btn-thanos-cancel" onclick="window.closeThanosPopup()">취소</button>
+        <button id="btn-thanos-cancel">취소</button>
     </div>
 
     <div id="ranking-board" class="hud">
@@ -106,11 +106,11 @@
     <div id="timer-box" class="hud"><span id="time-txt">02:00</span></div>
     <div id="item-shop" class="hud">
         <span class="shop-title">🛒 ITEM SHOP (<span id="gold-txt" style="color:#eab308; font-weight:bold;">50</span>G)</span>
-        <button id="btn-banana" class="shop-btn" onclick="window.buyItem('banana', 10)">🍌 바나나 껍질 (10G)</button>
-        <button id="btn-powerup" class="shop-btn" onclick="window.buyItem('powerup', 30)">⚡ 파워업 드링크 (30G)</button>
-        <button id="btn-magnet" class="shop-btn" onclick="window.buyItem('magnet', 50)">🧲 박스 자석 (50G)</button>
-        <button id="btn-ice" class="shop-btn" onclick="window.buyItem('ice', 70)">❄️ 아이스 얼음 (70G)</button>
-        <button id="btn-thanos" class="shop-btn" onclick="window.buyItem('thanos', 100)">😈 타노스 핑거스냅 (100G)</button>
+        <button id="btn-banana" class="shop-btn">🍌 바나나 껍질 (10G)</button>
+        <button id="btn-powerup" class="shop-btn">⚡ 파워업 드링크 (30G)</button>
+        <button id="btn-magnet" class="shop-btn">🧲 박스 자석 (50G)</button>
+        <button id="btn-ice" class="shop-btn">❄️ 아이스 얼음 (70G)</button>
+        <button id="btn-thanos" class="shop-btn">😈 타노스 핑거스냅 (100G)</button>
     </div>
     
     <div id="inventory-hud" class="hud">
